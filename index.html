@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<title>Shower Presentation Engine</title>
+   	<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="shower/themes/ribbon/styles/screen-16x10.css">
+	</head>
+
+	<body class="shower list">
+		<header class="caption">
+			<h1>VueJS для изоморфных приложений</h1>
+			<p><a href="https://govorov.online">Николай Говоров</a>, ВКонтакте</p>
+		</header>
+
+		<section class="slide" id="cover">
+      <h2 class="shout">Vue для изоморфных приложений</h2>
+    </section>
+
+    <section class="slide">
+      <h2>Какие проблемы мы решаем?</h2>
+
+      <ul>
+        <li class="next">Скорость первой загрузки</li>
+        <li class="next">CEO оптимизация</li>
+        <li class="next">Фолбеки для старых браузеров</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">
+        <a href="https://nuxtjs.org">Nuxt.js</a>
+      </h2>
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">SSR спешит на помощь!</h2>
+    </section>
+
+    <section class="slide">
+      <img src="pictures/786a415a-5fee-11e6-9c11-45a2cfdf085c.png" alt="" class="cover">
+    </section>
+
+    <section class="slide">
+      <h2>Код выполнится и на клиенте и на сервере!</h2>
+
+      <ul>
+        <li class="next">Нагрузка на сервер существенно увеличится</li>
+        <li class="next">Изоморфность для запросов</li>
+        <li class="next">На сервере нет объекта window</li>
+        <li class="next">Новые инстансы на каждого клиента!</li>
+        <li class="next">XSS попадет и на сервер</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Этапы</h2>
+
+      <ul>
+        <li class="next">Точка входа в приложение</li>
+        <li class="next">Обертки для клиента и сервера</li>
+        <li class="next">Сборка</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <pre>
+        <code>import Vue from 'vue';</code>
+        <code>import App from './ui/index.vue';</code>
+        <code> </code>
+        <code>export function createApp(context) {</code>
+        <code>  const app = new Vue({</code>
+        <code>    render: h => h(App),</code>
+        <code>  });</code>
+        <code>  return { app };</code>
+        <code>}</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <h2>client-entry.js</h2>
+
+      <pre>
+        <code>import { createApp } from './app';</code>
+        <code> </code>
+        <code>const { app } = createApp();</code>
+        <code> </code>
+        <code>app.$mount('#root');</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <h2>server-entry.js</h2>
+
+      <pre>
+        <code>import { createApp } from './app';</code>
+        <code> </code>
+        <code>export default (context) => new Promise((resolve) => {</code>
+        <code>  const { app } = createApp();</code>
+        <code> </code>
+        <code>  resolve(app);</code>
+        <code>})</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <pre style="transform: scale(0.8); position: absolute; left: 0">
+        <code>const { createBundleRenderer } = require('vue-server-renderer');</code>
+        <code> </code>
+        <code>const bundle = require('./dist/vue-ssr-bundle.json')</code>
+        <code>const template = fs.readFileSync(resolve('./dist/index.html'), 'utf-8')</code>
+        <code>const renderer = createBundleRenderer(bundle, { template });</code>
+        <code> </code>
+        <code>app.get('*', (req, res) => {</code>
+        <code>  renderer.renderToStream({ url: req.url }).pipe(res);</code>
+        <code>})</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <pre>
+        <code>const merge = require('webpack-merge');</code>
+        <code> </code>
+        <code>const createConfig =</code>
+        <code>  (target, custom) => merge({ ... }, custom); </code>
+        <code> </code>
+        <code>module.exports = [</code>
+        <code>  createConfig('client', { ... }),</code>
+        <code>  createConfig('server', { ... }),</code>
+        <code>];</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <h2>Хотелки:</h2>
+
+      <ul>
+        <li class="next">Роутинг</li>
+        <li class="next">Загрузка данных / заполение стора</li>
+        <li class="next">Сборка стилей</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Роутинг</h2>
+
+      <pre>
+        <code>router.push('localhost')</code>
+      </pre>
+      <pre>
+        <code>router.onReady(() => { /* ... */ });</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <h2>Загрузка данных</h2>
+
+      <pre  style="transform: scale(0.8); position: absolute; left: 0; bottom: 0">
+        <code>const matchedComponents = router.getMatchedComponents();</code>
+        <code> </code>
+        <code>Promise.all(matchedComponents.map(c => c.asyncData && c.asyncData({</code>
+        <code>  store, route: router.currentRoute,</code>
+        <code>})).then(() => {</code>
+        <code>  store.state = store.state; </code>
+        <code> </code>
+        <code>  // ...</code>
+        <code>});</code>
+      </pre>
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">Сборка стилей</h2>
+    </section>
+
+    <section class="slide">
+      <img src="./pictures/r_287380_JYwGo.jpg" class="cover">
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">It`s work!</h2>
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">Maybe.</h2>
+    </section>
+
+    <section class="slide">
+      <h2>Библиотека:</h2>
+
+      <ul>
+        <li><a href="https://ssr.vuejs.org">https://ssr.vuejs.org</a></li>
+        <li><a href="https://github.com/doabit/vue-ssr-starter-kit">https://github.com/doabit/vue-ssr-starter-kit"</a></li>
+        <li><a href="https://habr.com/post/334952/">https://habr.com/post/334952/</a></li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Говоров Николай из "ВКонтакте"</h2>
+
+      <ul>
+        <li><a>nikolay_govorov@bk.ru</a></li>
+        <li>VK: <a>vk.com/nikolay_govorov</a></li>
+        <li>Twitter: <a>twitter.com/govorov_n</a></li>
+        <li>Github: <a>github.com/nikolay-govorov</a></li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2 class="shout">Вопросы?</h2>
+    </section>
+
+    <footer class="badge">
+			<a href="https://github.com/shower/shower">Powered by Shower</a>
+		</footer>
+
+		<div class="progress"></div>
+
+		<script src="shower/shower.min.js"></script>
+		<!-- Copyright © 2017 Yours Truly, Famous Inc. -->
+	</body>
+</html>
